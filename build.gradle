@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+}
+
+group 'com.tobeTop'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.springframework', name: 'spring-core', version: '5.0.7.RELEASE'
+    compile group: 'org.springframework', name: 'spring-context', version: '5.0.7.RELEASE'
+    compile group: 'org.springframework', name: 'spring-aop', version: '5.0.7.RELEASE'
+    compile group: 'org.aspectj', name: 'aspectjweaver', version: '1.9.1'
+    compile 'org.springframework.boot:spring-boot-starter-data-redis:1.5.4.RELEASE'
+    compile 'com.google.guava:guava:18.0'
+    compile 'org.slf4j:slf4j-api:1.7.25'
+}
