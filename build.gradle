@@ -21,5 +21,8 @@ dependencies {
     compile 'com.google.guava:guava:18.0'
     compile 'org.slf4j:slf4j-api:1.7.25'
     compile "org.projectlombok:lombok:1.16.10"
+    compile group: 'com.101tec', name: 'zkclient', version: '0.10'
+    compile 'org.apache.curator:curator-recipes:4.0.0'
+
 
 }

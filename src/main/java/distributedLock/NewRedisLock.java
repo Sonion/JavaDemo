@@ -1,27 +1,22 @@
 package distributedLock;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.UUID;
 
 /**
  * Created by lewis on 2018/07/09
  */
 public class NewRedisLock {
-    private static final Logger LOG = LoggerFactory.getLogger(NewRedisLock.class);
     public static final String OK = "OK";
-    //其实很简单，首先获取锁对应的value值，检查是否与requestId相等，如果相等则删除锁（解锁）。
-    // 那么为什么要使用Lua语言来实现呢？因为要确保上述操作是原子性的。
+    //其实很简单，首先获取锁对应的value值，检查是否与加锁的lockValue相等，如果相等则删除锁（解锁）。
+    // 那么为什么要使用Lua语言来实现呢？因为要确保此操作是原子性的。
     //简单来说，就是在eval命令执行Lua代码的时候，Lua代码将被当成一个命令去执行，并且直到eval命令执行完成，Redis才会执行其他命令。
-    public static final String UNLOCK_LUA = "if redis.call(\"get\",KEYS[1]) == ARGV[1] " + "then "
-            + "    return redis.call(\"del\",KEYS[1]) " + "else " + "    return 0 " + "end ";
+    public static final String UNLOCK_LUA = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
 
     /**
      * 加锁
@@ -68,19 +63,14 @@ public class NewRedisLock {
                 Object nativeConnection = connection.getNativeConnection();
                 Long result = 0L;
 
-                List<String> keys = new ArrayList<>();
-                keys.add(lockRes.getKey());
-                List<String> values = new ArrayList<>();
-                values.add(lockRes.getValue());
-
                 // 集群
                 if (nativeConnection instanceof JedisCluster) {
-                    result = (Long) ((JedisCluster) nativeConnection).eval(UNLOCK_LUA, keys, values);
+                    result = (Long) ((JedisCluster) nativeConnection).eval(UNLOCK_LUA, Collections.singletonList(lockRes.getKey()), Collections.singletonList(lockRes.getValue()));
                 }
 
                 // 单机
                 if (nativeConnection instanceof Jedis) {
-                    result = (Long) ((Jedis) nativeConnection).eval(UNLOCK_LUA, keys, values);
+                    result = (Long) ((Jedis) nativeConnection).eval(UNLOCK_LUA, Collections.singletonList(lockRes.getKey()), Collections.singletonList(lockRes.getValue()));
                 }
 
                 return result == 1L;
